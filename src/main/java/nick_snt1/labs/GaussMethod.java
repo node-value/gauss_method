@@ -2,10 +2,15 @@ package nick_snt1.labs;
 
 public class GaussMethod {
 
-    private static int findMainRow(Double[][] A, int i) {
+    private static void throwIfZero(Double n) throws Exception {
+        if (n == 0) throw new Exception("Determinant of given matrix is 0, Gauss method can not be performed.");
+    }
+
+    private static int findMainRow(Double[][] A, int i) throws Exception {
         int max = i;
         for (int j = i; j < A.length; j++) 
-            max = A[j][i] > A[max][i] ? j : max;
+            max = Math.abs(A[j][i]) > Math.abs(A[max][i]) ? j : max;
+        throwIfZero(A[max][i]);
         return max;
     }
 
@@ -28,10 +33,10 @@ public class GaussMethod {
         }
     }
 
-    private static Double[][] forwardMove(Double[][] A) { 
-        for (int i = 0; i < A.length; i++)
-           excludeColumn(A, normalizeRow(swapRows(A, i, findMainRow(A, i)), i), i);
-        return A;
+    private static Double determinant(Double[][] A) {
+        Double det = 1.0;
+        for (int i = 0; i < A.length; i++) det *= A[i][i];
+        return det;
     }
 
     private static Double findX(Double[] row, Double[] vector, int vectorLn) {
@@ -41,15 +46,27 @@ public class GaussMethod {
         return x;
     }
 
-    private static Double[] backwardMove(Double[][] A) {
+    public static Double[][] forwardMove(Double[][] A) throws Exception {
+        for (int i = 0; i < A.length; i++)
+            excludeColumn(A, normalizeRow(swapRows(A, i, findMainRow(A, i)), i), i);
+        throwIfZero(determinant(A));
+        return A;
+    }
+
+    public static Double[] backwardMove(Double[][] A) {
         Double[] vector = new Double[A.length]; 
         for (int i = vector.length-1; i >= 0; i--) 
             vector[i] = findX(A[i], vector, vector.length-i-1);
         return vector;
     }
 
-    public static Double[] compute(Double[][] A) {
-        return backwardMove(forwardMove(A));
+    public static Double[] measureError(Double[][] A, Double[] vector) {
+        Double[] errorVector = new Double[vector.length];
+        for (int i = 0; i < A.length; i++) {
+            Double rowSum = 0.0;
+            for (int j = 0; j < vector.length; j++ ) rowSum += vector[j]*A[i][j];
+            errorVector[i] = A[i][vector.length] - rowSum;
+        } return errorVector;
     }
 }
 

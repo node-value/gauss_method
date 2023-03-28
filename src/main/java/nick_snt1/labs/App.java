@@ -11,18 +11,21 @@ public class App {
         try {
             AppMode mode = init(args);
 
-            if (mode == AppMode.HELP) {Printer.usage(); return;}
+            if (mode == AppMode.HELP) { Printer.usage(); return; }
 
             Printer.greatings();
 
-            Double[][] matrix         = getMatrix(mode, args);
-            Double[][] triangleMatrix = deepCopyOf(matrix);
+            Double[][] matrix         = getMatrix(mode, args),
+                       triangleMatrix = deepCopyOf(matrix);
 
             Printer.matrix(GaussMethod.forwardMove(triangleMatrix));
 
-            Double[] vector = GaussMethod.backwardMove(triangleMatrix);
+            Double[] vector      = GaussMethod.backwardMove(triangleMatrix),
+                     errorVector = GaussMethod.measureError(matrix, vector);
+            
             Printer.resultVector(vector);
-            Printer.errorVector(GaussMethod.measureError(matrix, vector));
+            Printer.errorVector(errorVector);
+
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -30,23 +33,18 @@ public class App {
 
     public static Double[][] getMatrix(AppMode mode, String[] args) throws Exception {
         if (mode == AppMode.RANDOM) return RandomMatrix.generate(Integer.parseInt(args[1]), Integer.parseInt(args[2]));
-        else {
-            Reader reader = mode == AppMode.STANDART ?
+        else return ( mode == AppMode.STANDART ?
                 new InputReader(new Scanner(System.in)) : 
-                    new FileReader(new Scanner(new File(args[1])));
-            return reader.readMatrix();
-        }
+                    new FileReader(new Scanner(new File(args[1]))) ).readMatrix();
+            
+        
     }
     
     public static AppMode init(String[] args) throws Exception {
-        if (args.length == 0 || (args.length == 1 && args[0].equals("-s"))) 
-            return AppMode.STANDART;
-        if (args.length == 1 && args[0].equals("--help"))
-            return AppMode.HELP;
-        if (args.length == 2 && args[0].equals("-f")) 
-            return AppMode.FILE; 
-        if (args.length == 3 && args[0].equals("-r") && isNumber(args[1]) && isNumber(args[2])) 
-            return AppMode.RANDOM;
+        if (args.length == 0 || (args.length == 1 && args[0].equals("-s")))                     return AppMode.STANDART;
+        if (args.length == 1 && args[0].equals("--help"))                                       return AppMode.HELP;
+        if (args.length == 2 && args[0].equals("-f"))                                           return AppMode.FILE; 
+        if (args.length == 3 && args[0].equals("-r") && isNumber(args[1]) && isNumber(args[2])) return AppMode.RANDOM;
         throw new Exception("Unknown option: " + args[0] + System.lineSeparator() + "Run with \"--help\" to see available options.");
     }
 

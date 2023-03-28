@@ -8,38 +8,50 @@ import nick_snt1.labs.io.*;
 
 public class App {
     public static void main( String[] args ) {
-        /*
-        Double[][] matrix = new Double[][] {
-            //{ 1.0, 1.0, 3.0 },
-            //{ 1.0, 1.0, 6.0 }
-            {2.0, 3.0, -1.0, 7.0},
-            {1.0, -1.0, 6.0, 14.0},
-            {6.0, -2.0, 1.0, 11.0},
-        };
-        Double[][] triangleMatrix = new Double[][] {
-            //{1.0, 1.0, 3.0},
-            //{1.0, 1.0, 6.0}
-            {2.0, 3.0, -1.0, 7.0},
-            {1.0, -1.0, 6.0, 14.0},
-            {6.0, -2.0, 1.0, 11.0},
-        };
-         */ 
         try {
-            Double[][] matrix, triangleMatrix; 
-            Reader reader  = args.length == 0 ? 
-                new InputReader(new Scanner(System.in)) :
-                    new FileReader(new Scanner(new File(args[1])));
-            
-            matrix         = reader.readMatrix();
-            triangleMatrix = deepCopyOf(matrix);
+            AppMode mode = init(args);
 
-            GaussMethod.forwardMove(triangleMatrix);
+            if (mode == AppMode.HELP) {Printer.usage(); return;}
+
+            Printer.greatings();
+
+            Double[][] matrix         = getMatrix(mode, args);
+            Double[][] triangleMatrix = deepCopyOf(matrix);
+
+            Printer.matrix(GaussMethod.forwardMove(triangleMatrix));
+
             Double[] vector = GaussMethod.backwardMove(triangleMatrix);
-            System.out.println(Arrays.toString(vector));
-            System.out.println(Arrays.toString(GaussMethod.measureError(matrix, vector)));
+            Printer.resultVector(vector);
+            Printer.errorVector(GaussMethod.measureError(matrix, vector));
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    public static Double[][] getMatrix(AppMode mode, String[] args) throws Exception {
+        if (mode == AppMode.RANDOM) return RandomMatrix.generate(Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+        else {
+            Reader reader = mode == AppMode.STANDART ?
+                new InputReader(new Scanner(System.in)) : 
+                    new FileReader(new Scanner(new File(args[1])));
+            return reader.readMatrix();
+        }
+    }
+    
+    public static AppMode init(String[] args) throws Exception {
+        if (args.length == 0 || (args.length == 1 && args[0].equals("-s"))) 
+            return AppMode.STANDART;
+        if (args.length == 1 && args[0].equals("--help"))
+            return AppMode.HELP;
+        if (args.length == 2 && args[0].equals("-f")) 
+            return AppMode.FILE; 
+        if (args.length == 3 && args[0].equals("-r") && isNumber(args[1]) && isNumber(args[2])) 
+            return AppMode.RANDOM;
+        throw new Exception("Unknown option: " + args[0] + System.lineSeparator() + "Run with \"--help\" to see available options.");
+    }
+
+    public static boolean isNumber(String str) {
+        try { Integer.parseInt(str); return true; } catch (NumberFormatException ignore) { return false; }
     }
 
     public static Double[][] deepCopyOf(Double[][] matrix) {

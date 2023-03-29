@@ -18,13 +18,19 @@ public class App {
             Double[][] matrix         = getMatrix(mode, args),
                        triangleMatrix = deepCopyOf(matrix);
 
-            Printer.matrix(GaussMethod.forwardMove(triangleMatrix));
+            long startTime = System.currentTimeMillis();
+
+            GaussMethod.forwardMove(triangleMatrix);
 
             Double[] vector      = GaussMethod.backwardMove(triangleMatrix),
                      errorVector = GaussMethod.measureError(matrix, vector);
             
+            long finishTime = System.currentTimeMillis();
+            
+            Printer.matrix(triangleMatrix);         
             Printer.resultVector(vector);
             Printer.errorVector(errorVector);
+            Printer.time(finishTime - startTime);
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
